@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Kế hoạch Học tập Cá nhân</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm border border-white/20">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">StudyPlanner Pro</h1>
+                    <p class="text-xs text-indigo-200 hidden sm:block">Quản lý kế hoạch học tập cá nhân thông minh</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Quick Search -->
+                <div class="relative hidden md:block">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-300">
+                        <i class="fa-solid fa-search text-xs"></i>
+                    </span>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm môn học, nhiệm vụ..." 
+                        class="bg-indigo-700/60 text-white placeholder-indigo-300 text-sm rounded-lg pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/50 w-64 transition-all">
+                </div>
+
+                <!-- Theme / Stats toggle or quick action -->
+                <button onclick="openTaskModal()" class="bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-xl font-medium text-sm shadow-sm transition flex items-center space-x-2">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span class="hidden sm:inline">Thêm nhiệm vụ</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 flex-shrink-0 flex flex-col space-y-4">
+            <!-- Navigation Links -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-indigo-600 bg-indigo-50">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                    <span>Tổng quan & Thống kê</span>
+                </button>
+                <button onclick="switchTab('tasks')" id="nav-tasks" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
+                    <i class="fa-solid fa-list-check w-5 text-center"></i>
+                    <span>Nhiệm vụ & Kế hoạch</span>
+                </button>
+                <button onclick="switchTab('subjects')" id="nav-subjects" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
+                    <i class="fa-solid fa-book-bookmark w-5 text-center"></i>
+                    <span>Môn học</span>
+                </button>
+                <button onclick="switchTab('pomodoro')" id="nav-pomodoro" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-slate-600 hover:bg-slate-50 hover:text-indigo-600">
+                    <i class="fa-solid fa-clock w-5 text-center"></i>
+                    <span>Đồng hồ Pomodoro</span>
+                </button>
+            </div>
+
+            <!-- Quick Motivation Card -->
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-sm hidden md:block">
+                <div class="flex items-center space-x-2 mb-2">
+                    <i class="fa-solid fa-quote-left text-indigo-200"></i>
+                    <span class="text-xs uppercase tracking-wider font-semibold text-indigo-200">Lời khuyên hôm nay</span>
+                </div>
+                <p id="quoteText" class="text-sm italic font-light leading-relaxed">"Học tập không bao giờ làm mệt mỏi trí tuệ."</p>
+                <p id="quoteAuthor" class="text-xs text-indigo-200 mt-2 text-right">— Leonardo da Vinci</p>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tab-dashboard" class="space-y-6">
+                <!-- Welcome Banner -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Xin chào bạn, chúc bạn học tập hiệu quả! 👋</h2>
+                        <p class="text-sm text-slate-500 mt-1">Hôm nay là <span id="currentDateString" class="font-medium text-slate-700"></span>. Dưới đây là tiến độ học tập của bạn.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openSubjectModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2">
+                            <i class="fa-solid fa-folder-plus text-xs"></i>
+                            <span>Thêm môn học</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                        <div class="bg-blue-50 text-blue-600 p-3.5 rounded-xl text-xl">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Tổng nhiệm vụ</p>
+                            <h3 id="statTotalTasks" class="text-2xl font-bold text-slate-800 mt-0.5">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                        <div class="bg-amber-50 text-amber-600 p-3.5 rounded-xl text-xl">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Đang thực hiện</p>
+                            <h3 id="statPendingTasks" class="text-2xl font-bold text-slate-800 mt-0.5">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                        <div class="bg-emerald-50 text-emerald-600 p-3.5 rounded-xl text-xl">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Đã hoàn thành</p>
+                            <h3 id="statCompletedTasks" class="text-2xl font-bold text-slate-800 mt-0.5">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                        <div class="bg-purple-50 text-purple-600 p-3.5 rounded-xl text-xl">
+                            <i class="fa-solid fa-book"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Số môn học</p>
+                            <h3 id="statTotalSubjects" class="text-2xl font-bold text-slate-800 mt-0.5">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar Section -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-slate-800">Tiến độ hoàn thành tổng thể</h3>
+                        <span id="overallProgressText" class="text-sm font-semibold text-indigo-600">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                        <div id="overallProgressBar" class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Recent Tasks & Quick Actions Preview -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800">Nhiệm vụ cần làm gấp (Hạn sớm nhất)</h3>
+                            <button onclick="switchTab('tasks')" class="text-xs font-semibold text-indigo-600 hover:underline">Xem tất cả</button>
+                        </div>
+                        <div id="dashboardRecentTasks" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Subjects list on dashboard -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-slate-800">Môn học của bạn</h3>
+                            <button onclick="switchTab('subjects')" class="text-xs font-semibold text-indigo-600 hover:underline">Quản lý</button>
+                        </div>
+                        <div id="dashboardSubjectsList" class="space-y-2.5 flex-1 overflow-y-auto max-h-64">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: TASKS & PLANNING -->
+            <div id="tab-tasks" class="space-y-6 hidden">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Quản lý Nhiệm vụ & Kế hoạch</h2>
+                        <p class="text-sm text-slate-500">Tạo, theo dõi tiến độ và hoàn thành các bài tập, ôn thi.</p>
+                    </div>
+                    <button onclick="openTaskModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Thêm nhiệm vụ mới</span>
+                    </button>
+                </div>
+
+                <!-- Filter & Search Toolbar -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-wrap gap-3 items-center justify-between">
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <button onclick="filterTasks('all')" id="filter-all" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition bg-indigo-50 text-indigo-600">Tất cả</button>
+                        <button onclick="filterTasks('pending')" id="filter-pending" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100">Đang thực hiện</button>
+                        <button onclick="filterTasks('completed')" id="filter-completed" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100">Đã hoàn thành</button>
+                    </div>
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <select id="taskSubjectFilter" onchange="renderTasksTable()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Tất cả môn học</option>
+                        </select>
+                        <select id="taskPriorityFilter" onchange="renderTasksTable()" class="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">Tất cả mức độ</option>
+                            <option value="Cao">Cao</option>
+                            <option value="Trung bình">Trung bình</option>
+                            <option value="Thấp">Thấp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tasks List Table / Cards -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-3.5 px-4">Trạng thái</th>
+                                    <th class="py-3.5 px-4">Tiêu đề nhiệm vụ</th>
+                                    <th class="py-3.5 px-4">Môn học</th>
+                                    <th class="py-3.5 px-4">Hạn chót</th>
+                                    <th class="py-3.5 px-4">Mức độ</th>
+                                    <th class="py-3.5 px-4 text-right">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasksTableBody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noTasksMessage" class="hidden text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-clipboard-list text-3xl mb-2"></i>
+                        <p>Không tìm thấy nhiệm vụ nào phù hợp.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SUBJECTS -->
+            <div id="tab-subjects" class="space-y-6 hidden">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Quản lý Môn học</h2>
+                        <p class="text-sm text-slate-500">Thêm, chỉnh sửa danh sách các môn học bạn đang theo đuổi.</p>
+                    </div>
+                    <button onclick="openSubjectModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition shadow-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-folder-plus text-xs"></i>
+                        <span>Thêm môn học mới</span>
+                    </button>
+                </div>
+
+                <!-- Subjects Grid -->
+                <div id="subjectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+                <div id="noSubjectsMessage" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-100 text-slate-400">
+                    <i class="fa-solid fa-book-open text-3xl mb-2"></i>
+                    <p>Chưa có môn học nào. Hãy thêm môn học đầu tiên của bạn!</p>
+                </div>
+            </div>
+
+            <!-- TAB 4: POMODORO -->
+            <div id="tab-pomodoro" class="space-y-6 hidden">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h2 class="text-xl font-bold text-slate-800">Đồng hồ Pomodoro học tập</h2>
+                    <p class="text-sm text-slate-500">Áp dụng phương pháp Pomodoro để tập trung cao độ và chống phân tâm.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 max-w-lg mx-auto text-center flex flex-col items-center">
+                    <!-- Timer Mode Selectors -->
+                    <div class="flex bg-slate-100 p-1.5 rounded-xl mb-8 space-x-1">
+                        <button onclick="setPomodoroMode('work')" id="mode-work" class="px-4 py-2 rounded-lg text-xs font-semibold transition bg-white text-indigo-600 shadow-sm">Tập trung (25p)</button>
+                        <button onclick="setPomodoroMode('shortBreak')" id="mode-shortBreak" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-800">Nghỉ ngắn (5p)</button>
+                        <button onclick="setPomodoroMode('longBreak')" id="mode-longBreak" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-800">Nghỉ dài (15p)</button>
+                    </div>
+
+                    <!-- Timer Display -->
+                    <div class="relative mb-8">
+                        <div class="text-6xl sm:text-7xl font-extrabold text-slate-800 tracking-tight font-mono" id="pomodoroTimerDisplay">
+                            25:00
+                        </div>
+                        <p id="pomodoroStatusLabel" class="text-sm font-medium text-indigo-600 mt-2 uppercase tracking-wide">Sẵn sàng tập trung</p>
+                    </div>
+
+                    <!-- Timer Controls -->
+                    <div class="flex items-center space-x-3">
+                        <button onclick="togglePomodoroTimer()" id="pomodoroStartBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md transition flex items-center space-x-2">
+                            <i class="fa-solid fa-play text-sm"></i>
+                            <span id="pomodoroStartBtnText">Bắt đầu</span>
+                        </button>
+                        <button onclick="resetPomodoroTimer()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-3 rounded-xl font-semibold transition">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL: ADD/EDIT TASK -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="taskModalTitle" class="font-bold text-lg text-slate-800">Thêm nhiệm vụ mới</h3>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="taskForm" onsubmit="handleTaskFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="taskId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Tiêu đề nhiệm vụ *</label>
+                    <input type="text" id="taskTitle" required placeholder="Ví dụ: Làm bài tập Giải tích chương 2" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Môn học</label>
+                        <select id="taskSubject" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Mức độ ưu tiên</label>
+                        <select id="taskPriority" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="Cao">Cao</option>
+                            <option value="Trung bình" selected>Trung bình</option>
+                            <option value="Thấp">Thấp</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Hạn chót (Deadline)</label>
+                    <input type="date" id="taskDueDate" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Ghi chú chi tiết</label>
+                    <textarea id="taskDescription" rows="3" placeholder="Các yêu cầu cụ thể cần lưu ý..." 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeTaskModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition">Hủy</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition">Lưu nhiệm vụ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD/EDIT SUBJECT -->
+    <div id="subjectModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="subjectModalTitle" class="font-bold text-lg text-slate-800">Thêm môn học mới</h3>
+                <button onclick="closeSubjectModal()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="subjectForm" onsubmit="handleSubjectFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="subjectOldName">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Tên môn học *</label>
+                    <input type="text" id="subjectNameInput" required placeholder="Ví dụ: Toán Cao Cấp" 
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Màu sắc chủ đạo</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="color" id="subjectColorInput" value="#6366f1" class="w-12 h-10 rounded-xl border border-slate-200 cursor-pointer p-1 bg-white">
+                        <span class="text-xs text-slate-500">Chọn màu đại diện cho môn học</span>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeSubjectModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium text-sm transition">Hủy</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition">Lưu môn học</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CUSTOM TOAST NOTIFICATION -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- INITIAL DATA & STATE ---
+        let subjects = JSON.parse(localStorage.getItem('study_subjects')) || [
+            { name: 'Toán Cao Cấp', color: '#6366f1' },
+            { name: 'Lập trình Web', color: '#3b82f6' },
+            { name: 'Cấu trúc dữ liệu', color: '#10b981' },
+            { name: 'Tiếng Anh chuyên ngành', color: '#f59e0b' }
+        ];
+
+        let tasks = JSON.parse(localStorage.getItem('study_tasks')) || [
+            { id: 1, title: 'Hoàn thành bài tập chương ma trận', subject: 'Toán Cao Cấp', dueDate: '2026-04-20', priority: 'Cao', completed: false, description: 'Làm bài 1 đến bài 10 sách giáo khoa.' },
+            { id: 2, title: 'Thiết kế giao diện trang chủ bằng Tailwind', subject: 'Lập trình Web', dueDate: '2026-04-18', priority: 'Trung bình', completed: true, description: 'Đảm bảo responsive trên mobile.' },
+            { id: 3, title: 'Ôn tập thuật toán cây nhị phân', subject: 'Cấu trúc dữ liệu', dueDate: '2026-04-25', priority: 'Cao', completed: false, description: 'Chuẩn bị cho bài kiểm tra giữa kỳ.' }
+        ];
+
+        let currentFilter = 'all';
+
+        // Quotes list for motivation
+        const quotes = [
+            { text: "Học tập không bao giờ làm mệt mỏi trí tuệ.", author: "Leonardo da Vinci" },
+            { text: "Giáo dục là vũ khí mạnh nhất mà bạn có thể sử dụng để thay đổi thế giới.", author: "Nelson Mandela" },
+            { text: "Đầu tư vào tri thức mang lại lợi nhuận cao nhất.", author: "Benjamin Franklin" },
+            { text: "Hãy học khi người khác ngủ, lao động khi người khác ăn chơi, bạn sẽ nhận được kết quả khác biệt.", author: "Danh ngôn" },
+            { text: "Thiên tài được tạo thành từ 1% cảm hứng và 99% mồ hôi.", author: "Thomas Edison" }
+        ];
+
+        // --- ONLOAD INITIALIZATION ---
+        window.onload = function() {
+            displayCurrentDate();
+            loadRandomQuote();
+            saveData();
+            renderAll();
+        };
+
+        function saveData() {
+            localStorage.setItem('study_subjects', JSON.stringify(subjects));
+            localStorage.setItem('study_tasks', JSON.stringify(tasks));
+        }
+
+        function displayCurrentDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date().toLocaleDateString('vi-VN', options);
+            document.getElementById('currentDateString').textContent = today;
+        }
+
+        function loadRandomQuote() {
+            const random = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quoteText').textContent = `"${random.text}"`;
+            document.getElementById('quoteAuthor').textContent = `— ${random.author}`;
+        }
+
+        function renderAll() {
+            renderDashboard();
+            renderTasksTable();
+            renderSubjectsGrid();
+            updateSubjectDropdowns();
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId) {
+            const tabs = ['dashboard', 'tasks', 'subjects', 'pomodoro'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    nav.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-indigo-600 bg-indigo-50";
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl font-medium text-sm transition text-slate-600 hover:bg-slate-50 hover:text-indigo-600";
+                }
+            });
+        }
+
+        // --- DASHBOARD RENDER ---
+        function renderDashboard() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const pending = total - completed;
+            const totalSubs = subjects.length;
+
+            document.getElementById('statTotalTasks').textContent = total;
+            document.getElementById('statCompletedTasks').textContent = completed;
+            document.getElementById('statPendingTasks').textContent = pending;
+            document.getElementById('statTotalSubjects').textContent = totalSubs;
+
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('overallProgressText').textContent = `${percent}%`;
+            document.getElementById('overallProgressBar').style.width = `${percent}%`;
+
+            // Recent tasks (Pending ones sorted by deadline)
+            const recentContainer = document.getElementById('dashboardRecentTasks');
+            const pendingTasks = tasks.filter(t => !t.completed).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).slice(0, 4);
+
+            if (pendingTasks.length === 0) {
+                recentContainer.innerHTML = `<p class="text-sm text-slate-400 italic py-2">Tuyệt vời! Bạn không còn nhiệm vụ nào đang chờ.</p>`;
+            } else {
+                recentContainer.innerHTML = pendingTasks.map(t => {
+                    const subObj = subjects.find(s => s.name === t.subject);
+                    const color = subObj ? subObj.color : '#6366f1';
+                    return `
+                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition">
+                            <div class="flex items-center space-x-3">
+                                <button onclick="toggleTaskStatus(${t.id})" class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center hover:border-indigo-600 transition">
+                                </button>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-slate-800">${escapeHtml(t.title)}</h4>
+                                    <div class="flex items-center space-x-2 mt-0.5">
+                                        <span class="text-xs px-2 py-0.5 rounded-md font-medium text-white" style="background-color: ${color}">${escapeHtml(t.subject)}</span>
+                                        <span class="text-xs text-slate-400"><i class="fa-regular fa-calendar mr-1"></i>${t.dueDate || 'Không có hạn'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-medium px-2.5 py-1 rounded-lg ${t.priority === 'Cao' ? 'bg-rose-50 text-rose-600' : t.priority === 'Trung bình' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}">
+                                ${t.priority}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Dashboard subjects preview
+            const subContainer = document.getElementById('dashboardSubjectsList');
+            if (subjects.length === 0) {
+                subContainer.innerHTML = `<p class="text-sm text-slate-400 italic">Chưa có môn học.</p>`;
+            } else {
+                subContainer.innerHTML = subjects.map(s => {
+                    const count = tasks.filter(t => t.subject === s.name && !t.completed).length;
+                    return `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-3 h-3 rounded-full" style="background-color: ${s.color}"></div>
+                                <span class="text-sm font-medium text-slate-700">${escapeHtml(s.name)}</span>
+                            </div>
+                            <span class="text-xs font-semibold px-2 py-0.5 bg-slate-200/60 text-slate-600 rounded-lg">${count} việc</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // --- TASKS MANAGEMENT ---
+        function filterTasks(type) {
+            currentFilter = type;
+            ['all', 'pending', 'completed'].forEach(t => {
+                const btn = document.getElementById(`filter-${t}`);
+                if (t === type) {
+                    btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition bg-indigo-50 text-indigo-600";
+                } else {
+                    btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition text-slate-600 hover:bg-slate-100";
+                }
+            });
+            renderTasksTable();
+        }
+
+        function renderTasksTable() {
+            const tbody = document.getElementById('tasksTableBody');
+            const noMsg = document.getElementById('noTasksMessage');
+            const subFilter = document.getElementById('taskSubjectFilter').value;
+            const priFilter = document.getElementById('taskPriorityFilter').value;
+            const searchTxt = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = tasks.filter(t => {
+                if (currentFilter === 'pending' && t.completed) return false;
+                if (currentFilter === 'completed' && !t.completed) return false;
+                if (subFilter && t.subject !== subFilter) return false;
+                if (priFilter && t.priority !== priFilter) return false;
+                if (searchTxt && !t.title.toLowerCase().includes(searchTxt) && !t.subject.toLowerCase().includes(searchTxt)) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+
+            noMsg.classList.add('hidden');
+            tbody.innerHTML = filtered.map(t => {
+                const subObj = subjects.find(s => s.name === t.subject);
+                const color = subObj ? subObj.color : '#6366f1';
+                return `
+                    <tr class="hover:bg-slate-50/80 transition border-b border-slate-100">
+                        <td class="py-3.5 px-4">
+                            <button onclick="toggleTaskStatus(${t.id})" class="w-6 h-6 rounded-full border-2 ${t.completed ? 'bg-emerald-500 border-emerald-500 text-white flex items-center justify-center text-xs' : 'border-slate-300 hover:border-indigo-600'} transition">
+                                ${t.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+                            </button>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <p class="font-medium text-slate-800 ${t.completed ? 'line-through text-slate-400' : ''}">${escapeHtml(t.title)}</p>
+                            ${t.description ? `<p class="text-xs text-slate-400 mt-0.5 line-clamp-1">${escapeHtml(t.description)}</p>` : ''}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <span class="text-xs px-2.5 py-1 rounded-lg font-medium text-white inline-block" style="background-color: ${color}">${escapeHtml(t.subject)}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600 text-xs font-medium">
+                            <i class="fa-regular fa-calendar mr-1 text-slate-400"></i>${t.dueDate || 'Không có hạn'}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <span class="text-xs font-medium px-2.5 py-1 rounded-lg ${t.priority === 'Cao' ? 'bg-rose-50 text-rose-600' : t.priority === 'Trung bình' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}">
+                                ${t.priority}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right space-x-1">
+                            <button onclick="openTaskModal(${t.id})" class="p-1.5 text-slate-400 hover:text-indigo-600 transition" title="Sửa">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteTask(${t.id})" class="p-1.5 text-slate-400 hover:text-rose-600 transition" title="Xóa">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleTaskStatus(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveData();
+                renderAll();
+                showToast(task.completed ? 'Đã hoàn thành nhiệm vụ!' : 'Đã đặt lại trạng thái nhiệm vụ', 'success');
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này không?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                saveData();
+                renderAll();
+                showToast('Đã xóa nhiệm vụ thành công', 'info');
+            }
+        }
+
+        // --- SUBJECTS MANAGEMENT ---
+        function renderSubjectsGrid() {
+            const grid = document.getElementById('subjectsGrid');
+            const noMsg = document.getElementById('noSubjectsMessage');
+
+            if (subjects.length === 0) {
+                grid.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+
+            noMsg.classList.add('hidden');
+            grid.innerHTML = subjects.map(s => {
+                const totalSubTasks = tasks.filter(t => t.subject === s.name).length;
+                const completedSubTasks = tasks.filter(t => t.subject === s.name && t.completed).length;
+                const percent = totalSubTasks > 0 ? Math.round((completedSubTasks / totalSubTasks) * 100) : 0;
+
+                return `
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: ${s.color}"></div>
+                                    <h3 class="font-bold text-slate-800 text-base">${escapeHtml(s.name)}</h3>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button onclick="openSubjectModal('${s.name}')" class="p-1.5 text-slate-400 hover:text-indigo-600 transition"><i class="fa-solid fa-pen text-xs"></i></button>
+                                    <button onclick="deleteSubject('${s.name}')" class="p-1.5 text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500">${totalSubTasks} nhiệm vụ tổng cộng (${completedSubTasks} đã xong)</p>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-slate-400 font-medium">Tiến độ môn học</span>
+                                <span class="font-semibold text-slate-700">${percent}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-300" style="width: ${percent}%; background-color: ${s.color}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteSubject(name) {
+            const hasTasks = tasks.some(t => t.subject === name);
+            if (hasTasks) {
+                alert('Không thể xóa môn học này vì vẫn còn nhiệm vụ liên kết. Hãy xóa hoặc chuyển nhiệm vụ sang môn khác trước.');
+                return;
+            }
+            if (confirm(`Bạn có chắc chắn muốn xóa môn học "${name}" không?`)) {
+                subjects = subjects.filter(s => s.name !== name);
+                saveData();
+                renderAll();
+                showToast('Đã xóa môn học thành công', 'info');
+            }
+        }
+
+        function updateSubjectDropdowns() {
+            const selects = ['taskSubject', 'taskSubjectFilter'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const currentVal = el.value;
+                let html = '';
+                if (id === 'taskSubjectFilter') {
+                    html = '<option value="">Tất cả môn học</option>';
+                }
+                html += subjects.map(s => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+                el.innerHTML = html;
+                el.value = currentVal;
+            });
+        }
+
+        // --- MODALS CONTROL ---
+        function openTaskModal(id = null) {
+            const modal = document.getElementById('taskModal');
+            const titleEl = document.getElementById('taskModalTitle');
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskId').value = '';
+
+            if (id) {
+                titleEl.textContent = 'Chỉnh sửa nhiệm vụ';
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                    document.getElementById('taskId').value = task.id;
+                    document.getElementById('taskTitle').value = task.title;
+                    document.getElementById('taskSubject').value = task.subject;
+                    document.getElementById('taskPriority').value = task.priority;
+                    document.getElementById('taskDueDate').value = task.dueDate;
+                    document.getElementById('taskDescription').value = task.description || '';
+                }
+            } else {
+                titleEl.textContent = 'Thêm nhiệm vụ mới';
+                // Set default date to today
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById('taskDueDate').value = todayStr;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+        }
+
+        function handleTaskFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('taskId').value;
+            const title = document.getElementById('taskTitle').value.trim();
+            const subject = document.getElementById('taskSubject').value;
+            const priority = document.getElementById('taskPriority').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+            const description = document.getElementById('taskDescription').value.trim();
+
+            if (!title) return;
+
+            if (id) {
+                const task = tasks.find(t => t.id == id);
+                if (task) {
+                    task.title = title;
+                    task.subject = subject;
+                    task.priority = priority;
+                    task.dueDate = dueDate;
+                    task.description = description;
+                }
+                showToast('Đã cập nhật nhiệm vụ thành công', 'success');
+            } else {
+                const newTask = {
+                    id: Date.now(),
+                    title,
+                    subject,
+                    priority,
+                    dueDate,
+                    completed: false,
+                    description
+                };
+                tasks.push(newTask);
+                showToast('Đã thêm nhiệm vụ mới thành công', 'success');
+            }
+
+            saveData();
+            renderAll();
+            closeTaskModal();
+        }
+
+        function openSubjectModal(subjectName = null) {
+            const modal = document.getElementById('subjectModal');
+            const titleEl = document.getElementById('subjectModalTitle');
+            document.getElementById('subjectForm').reset();
+
+            if (subjectName) {
+                titleEl.textContent = 'Chỉnh sửa môn học';
+                const sub = subjects.find(s => s.name === subjectName);
+                if (sub) {
+                    document.getElementById('subjectOldName').value = sub.name;
+                    document.getElementById('subjectNameInput').value = sub.name;
+                    document.getElementById('subjectColorInput').value = sub.color || '#6366f1';
+                }
+            } else {
+                titleEl.textContent = 'Thêm môn học mới';
+                document.getElementById('subjectOldName').value = '';
+                document.getElementById('subjectColorInput').value = '#' + Math.floor(Math.random()*16777215).toString(16);
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.add('hidden');
+        }
+
+        function handleSubjectFormSubmit(e) {
+            e.preventDefault();
+            const oldName = document.getElementById('subjectOldName').value;
+            const newName = document.getElementById('subjectNameInput').value.trim();
+            const color = document.getElementById('subjectColorInput').value;
+
+            if (!newName) return;
+
+            if (oldName) {
+                if (oldName !== newName && subjects.some(s => s.name === newName)) {
+                    alert('Tên môn học này đã tồn tại!');
+                    return;
+                }
+                const sub = subjects.find(s => s.name === oldName);
+                if (sub) {
+                    sub.name = newName;
+                    sub.color = color;
+                }
+                // Update tasks associated with this subject
+                tasks.forEach(t => {
+                    if (t.subject === oldName) t.subject = newName;
+                });
+                showToast('Đã cập nhật môn học thành công', 'success');
+            } else {
+                if (subjects.some(s => s.name === newName)) {
+                    alert('Tên môn học này đã tồn tại!');
+                    return;
+                }
+                subjects.push({ name: newName, color });
+                showToast('Đã thêm môn học thành công', 'success');
+            }
+
+            saveData();
+            renderAll();
+            closeSubjectModal();
+        }
+
+        // --- POMODORO TIMER LOGIC ---
+        let pomodoroTime = 25 * 60;
+        let pomodoroInterval = null;
+        let pomodoroRunning = false;
+        let pomodoroMode = 'work';
+
+        function setPomodoroMode(mode) {
+            pomodoroMode = mode;
+            clearInterval(pomodoroInterval);
+            pomodoroRunning = false;
+            document.getElementById('pomodoroStartBtnText').textContent = 'Bắt đầu';
+            document.getElementById('pomodoroStartBtn').innerHTML = '<i class="fa-solid fa-play text-sm"></i><span id="pomodoroStartBtnText">Bắt đầu</span>';
+
+            ['work', 'shortBreak', 'longBreak'].forEach(m => {
+                const btn = document.getElementById(`mode-${m}`);
+                if (m === mode) {
+                    btn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-white text-indigo-600 shadow-sm";
+                } else {
+                    btn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-800";
+                }
+            });
+
+            if (mode === 'work') {
+                pomodoroTime = 25 * 60;
+                document.getElementById('pomodoroStatusLabel').textContent = 'Sẵn sàng tập trung';
+            } else if (mode === 'shortBreak') {
+                pomodoroTime = 5 * 60;
+                document.getElementById('pomodoroStatusLabel').textContent = 'Thời gian nghỉ ngắn';
+            } else if (mode === 'longBreak') {
+                pomodoroTime = 15 * 60;
+                document.getElementById('pomodoroStatusLabel').textContent = 'Thời gian nghỉ dài';
+            }
+            updatePomodoroDisplay();
+        }
+
+        function togglePomodoroTimer() {
+            if (pomodoroRunning) {
+                clearInterval(pomodoroInterval);
+                pomodoroRunning = false;
+                document.getElementById('pomodoroStartBtn').innerHTML = '<i class="fa-solid fa-play text-sm"></i><span>Tiếp tục</span>';
+                document.getElementById('pomodoroStatusLabel').textContent = 'Đã tạm dừng';
+            } else {
+                pomodoroRunning = true;
+                document.getElementById('pomodoroStartBtn').innerHTML = '<i class="fa-solid fa-pause text-sm"></i><span>Tạm dừng</span>';
+                document.getElementById('pomodoroStatusLabel').textContent = pomodoroMode === 'work' ? 'Đang tập trung cao độ...' : 'Đang nghỉ ngơi thư giãn...';
+                
+                pomodoroInterval = setInterval(() => {
+                    if (pomodoroTime > 0) {
+                        pomodoroTime--;
+                        updatePomodoroDisplay();
+                    } else {
+                        clearInterval(pomodoroInterval);
+                        pomodoroRunning = false;
+                        document.getElementById('pomodoroStartBtn').innerHTML = '<i class="fa-solid fa-play text-sm"></i><span>Bắt đầu</span>';
+                        alert('Thời gian Pomodoro đã kết thúc!');
+                        showToast('Hoàn thành một phiên Pomodoro!', 'success');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetPomodoroTimer() {
+            clearInterval(pomodoroInterval);
+            pomodoroRunning = false;
+            document.getElementById('pomodoroStartBtn').innerHTML = '<i class="fa-solid fa-play text-sm"></i><span>Bắt đầu</span>';
+            setPomodoroMode(pomodoroMode);
+        }
+
+        function updatePomodoroDisplay() {
+            const minutes = Math.floor(pomodoroTime / 60);
+            const seconds = pomodoroTime % 60;
+            document.getElementById('pomodoroTimerDisplay').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // --- SEARCH INPUT EVENT LISTENER ---
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderTasksTable();
+        });
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-sm font-medium flex items-center space-x-2 transition-all transform translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+            }`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-600' : 'fa-circle-info text-indigo-600'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Helper escape HTML to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
